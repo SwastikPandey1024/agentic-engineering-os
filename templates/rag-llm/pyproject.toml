@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rag-llm-template"
+version = "0.1.0"
+description = "RAG and OCR Document Intelligence Template"
+requires-python = ">=3.11"
+dependencies = [
+    "faiss-cpu>=1.8.0",
+    "sentence-transformers>=2.6.0",
+    "pymupdf>=1.24.0",
+    "fastapi>=0.110.0",
+    "httpx>=0.27.0",
+    "pydantic>=2.7.0",
+    "uvicorn>=0.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.3.0",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"

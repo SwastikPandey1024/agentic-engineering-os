@@ -1,0 +1,40 @@
+name: CI Quality Gate
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test-matrix:
+    name: Fast Verification (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate All Skills Frontmatter & Standards
+        run: python ./tests/validate_skills.py
+
+      - name: Run Zero-Secret Scanner
+        run: python ./tests/scan_secrets.py
+
+      - name: Validate Starter Templates
+        run: python ./tests/test_templates.py
+
+      - name: Test Environment Guard Hook Engine
+        run: python ./tests/test_hooks.py
+
+      - name: Validate Documentation References
+        run: python ./tests/test_documentation.py

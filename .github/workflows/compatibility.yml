@@ -1,0 +1,32 @@
+name: Scheduled Python Compatibility Matrix
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"  # Every Monday at 04:00 UTC
+  workflow_dispatch:
+
+jobs:
+  matrix-test:
+    name: Compatibility Check (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run Full Self-Verification Suite
+        run: |
+          python ./tests/validate_skills.py
+          python ./tests/scan_secrets.py
+          python ./tests/test_templates.py
+          python ./tests/test_hooks.py
+          python ./tests/test_documentation.py
