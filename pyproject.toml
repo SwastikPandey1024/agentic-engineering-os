@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentic-os"
+version = "1.1.0.dev0"
+description = "The Engineering Operating System for AI Coding Agents"
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "Swastik Pandey and Contributors" },
+]
+requires-python = ">=3.10"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/SwastikPandey1024/agentic-engineering-os"
+Repository = "https://github.com/SwastikPandey1024/agentic-engineering-os"
+Issues = "https://github.com/SwastikPandey1024/agentic-engineering-os/issues"
+
+[project.scripts]
+agentic-os = "agentic_os.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agentic_os"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"templates" = "agentic_os/templates"
+"hooks" = "agentic_os/hooks"
+".agents" = "agentic_os/.agents"
+"AGENTS.md" = "agentic_os/AGENTS.md"

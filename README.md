@@ -15,7 +15,7 @@
 
 > **Turn AI coding from ad-hoc code generation into a repeatable engineering workflow.**
 
-[Origin Story](#-where-agenticos-came-from) • [Quickstart](#-quickstart) • [Architecture](#-architecture) • [Skills Catalog](SKILLS_INDEX.md) • [Case Studies](docs/case-studies/dependency-isolation.md) • [Benchmarks](benchmarks/) • [Contributing](CONTRIBUTING.md)
+[Origin Story](#-where-agenticos-came-from) • [Quickstart](#-quickstart) • [CLI Tooling](#-developer-cli-reference) • [Architecture](#-architecture) • [Skills Catalog](SKILLS_INDEX.md) • [Case Studies](docs/case-studies/dependency-isolation.md) • [Benchmarks](benchmarks/) • [Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -28,6 +28,7 @@ AgenticOS started as an experiment after learning about the **Agent Skills parad
 AI coding assistants are capable of generating syntax rapidly. However, building reliable, long-lived software requires more than raw model intelligence—it requires engineering context, deterministic boundaries, verification discipline, and institutional memory.
 
 What began as an exploration evolved into a cohesive, open-source engineering operating system:
+* **Developer CLI (`agentic-os`)**: Lightweight, zero-dependency toolkit for bootstrapping, environment health checks, starter archetypes, and multi-agent IDE integration.
 * **30+ Modular Skills** encoding procedural engineering workflows and decision matrices.
 * **Deterministic Guardrails & Hooks** that block unisolated or broken environments before commands execute.
 * **Project Memory & MCP Schemas** for persisting durable architectural decisions across sessions.
@@ -60,46 +61,146 @@ The goal of AgenticOS is not to add bureaucracy or slow coding agents down. The 
 
 ---
 
+## 🚀 Quickstart
+
+Get started with AgenticOS in under 60 seconds using the `agentic-os` developer CLI.
+
+### 1. Install AgenticOS
+```bash
+pip install agentic-os
+```
+
+### 2. Option A: Bootstrap into an Existing Project
+Initialize invariant rules, 30+ engineering skills, and deterministic hooks in your current workspace:
+
+```bash
+# Bootstrap AgenticOS assets into the workspace
+agentic-os init
+
+# Verify environment isolation & toolchain health
+agentic-os doctor
+
+# Configure AI assistant adapters (Antigravity, Cursor, Copilot, Claude)
+agentic-os ide configure --target all
+```
+
+### 3. Option B: Scaffold from a Verified Starter Archetype
+Create a new, production-ready project pre-configured with virtualenv isolation, tests, and formatting:
+
+```bash
+# List available starter templates
+agentic-os new --list-templates
+
+# Scaffold a FastAPI microservice with test suite and isolation
+agentic-os new my-api-service --template python-service
+
+# Initialize environment and run tests
+cd my-api-service
+uv venv .venv --python 3.12
+uv sync
+uv run pytest -v
+```
+
+---
+
+## 🛠️ Developer CLI Reference
+
+The `agentic-os` CLI is built using standard-library Python (zero heavy runtime dependencies) and works seamlessly across Windows, macOS, and Linux.
+
+### Commands Overview
+
+| Command | Syntax | Description |
+| :--- | :--- | :--- |
+| **`doctor`** | `agentic-os doctor [dir] [--strict] [-q]` | Inspects virtual environment, lockfile status, toolchain (`uv`/`poetry`/`npm`), Git status, and rules. |
+| **`init`** | `agentic-os init [dir] [-f] [-n] [-q]` | Bootstraps `.agents/skills/`, `hooks/`, and `AGENTS.md` into target directory with conflict safety. |
+| **`new`** | `agentic-os new <name> -t <tmpl> [-f] [-n] [--git]` | Scaffolds a new project from a verified starter archetype. |
+| **`ide list`** | `agentic-os ide list` | Lists all supported AI coding assistant and IDE integration targets. |
+| **`ide configure`**| `agentic-os ide configure -t <target> [dir] [-f] [-n]` | Generates thin configuration adapters for target assistants (`antigravity`, `cursor`, `copilot`, `claude`, `all`). |
+| **`ide doctor`** | `agentic-os ide doctor [dir] [-q]` | Diagnoses configured IDE adapters in the current workspace. |
+
+### Operational Safety & Flags
+
+- **Dry-Run Mode (`-n` / `--dry-run`)**: Previews all actions and file operations without writing any bytes to disk (exits with code `0`).
+- **Conflict Safety & Force Mode (`-f` / `--force`)**: If an existing file contains conflicting modifications, operations safely halt (exit code `1`) to prevent data loss unless `--force` is explicitly provided.
+- **Idempotent Execution**: Running `init`, `configure`, or `new` repeatedly on clean or matching targets automatically skips identical files (`[SKIP] (identical)`) and exits cleanly with code `0`.
+
+---
+
 ## 🏛️ Architecture
 
 AgenticOS decouples engineering into clear, specialized operational layers:
 
 ```text
-                       HUMAN / DEVELOPER
+                        HUMAN / DEVELOPER
+                                │
+                                ▼
+                       DEVELOPER CLI
+                     (agentic-os entrypoint)
+                                │
+                                ▼
+                      ┌──────────────────┐
+                      │    AGENTS.md     │
+                      │ Always-on rules  │
+                      └────────┬─────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              ▼                ▼                ▼
+           SKILLS            HOOKS             MCP
+         Knowledge        Enforcement      Tools/Memory
+         (30+ modules)    (Python engine)  (Graph schemas)
+              │                │                │
+              └────────────────┼────────────────┘
+                               ▼
+                           SUBAGENTS
+                          Delegation
                                │
                                ▼
-                     ┌──────────────────┐
-                     │    AGENTS.md     │
-                     │ Always-on rules  │
-                     └────────┬─────────┘
-                              │
-             ┌────────────────┼────────────────┐
-             ▼                ▼                ▼
-          SKILLS            HOOKS             MCP
-        Knowledge        Enforcement      Tools/Memory
-        (30+ modules)    (Python engine)  (Graph schemas)
-             │                │                │
-             └────────────────┼────────────────┘
-                              ▼
-                          SUBAGENTS
-                         Delegation
-                              │
-                              ▼
-                       AI CODING AGENT
-                              │
-                              ▼
-                      VERIFIED SOFTWARE
-                              │
-                              ▼
-                     EMPIRICAL BENCHMARKS
+                        AI CODING AGENT
+                               │
+                               ▼
+                       VERIFIED SOFTWARE
+                               │
+                               ▼
+                      EMPIRICAL BENCHMARKS
 ```
 
-### Core Separation of Concerns
-* 📜 **Invariants (`AGENTS.md`)**: Foundational, always-on rules governing environment isolation, security, and verification.
-* 🧠 **Skills (`.agents/skills/`)**: 30+ procedural modules answering the 6 Core Questions across domains.
-* 🛡️ **Hooks (`hooks/`)**: Standard-library Python engine and cross-platform wrappers enforcing virtual environments and lockfiles.
-* 🧩 **MCP Layer (`mcp/`)**: Structured schemas connecting codebase memory tools for persistent architectural decisions.
-* 🤖 **Subagents**: Isolated context sandboxes for complex, multi-phase refactoring or audit tasks.
+### 🔒 Single Source of Truth Model
+
+```text
+CLI Layer (agentic-os)
+    ↓
+Python Standard-Library Engines (doctor, init, templates, ide, guard)
+    ↓
+Canonical Repository Assets (Single Source of Truth)
+    ├── .agents/skills/   (30+ modular domain skills)
+    ├── hooks/            (environment guard isolation engine)
+    ├── templates/        (5 production starter archetypes)
+    └── AGENTS.md         (universal non-negotiable invariants)
+```
+
+> **Asset Integrity Invariant**: The 30+ skills, 5 starter templates, and invariant rules are maintained as **canonical filesystem assets**. The CLI dynamically discovers, validates, and packages these assets directly from disk—**they are never duplicated or hardcoded into Python source strings**.
+
+---
+
+## 🔌 AI Agent & IDE Compatibility
+
+AgenticOS provides first-class compatibility across major AI coding assistants and IDEs:
+
+| Assistant / IDE | Integration Mode | Generated Adapter File | Mechanism & Behavior |
+| :--- | :--- | :--- | :--- |
+| **Google Antigravity (AGY)** | **Native / Zero-config** | `.agents/rules/agentic-os.md` *(Optional)* | Automatically discovers `.agents/skills/` catalog and root `AGENTS.md` rules out-of-the-box. Optional rule adapter provides explicit context pointer. |
+| **Cursor IDE** | **Convention-based** | `.cursorrules` | Injects universal invariant rules and `.agents/skills/` trigger catalog into Cursor agent context. |
+| **VS Code + GitHub Copilot** | **Convention-based** | `.github/copilot-instructions.md` | Provides workspace-wide instructions for GitHub Copilot Chat in VS Code. |
+| **Claude Code (CLI)** | **Convention-based** | `CLAUDE.md` | Directs Claude Code to use `uv run` isolation and references `AGENTS.md` and skills. |
+| **OpenAI Codex / Custom Agents** | **Prompt Injection** | Custom Context | Ingest `AGENTS.md` and relevant `SKILL.md` workflows into system prompt context. |
+
+```bash
+# Configure all IDE adapters simultaneously
+agentic-os ide configure --target all
+
+# Inspect IDE integration status
+agentic-os ide doctor
+```
 
 ---
 
@@ -110,6 +211,7 @@ AgenticOS decouples engineering into clear, specialized operational layers:
 | **Universal Invariants** | [`AGENTS.md`](AGENTS.md) | High-priority rules: hard environment isolation, inspection before modification, zero-secret leakage. |
 | **Modular Skills** | [`.agents/skills/`](.agents/skills/) | 30 domain-specific engineering guides with triggers, checklists, step-by-step workflows, and verification steps. |
 | **Deterministic Hooks** | [`hooks/`](hooks/) | Canonical validation engine (`environment_guard.py`) with PowerShell (`.ps1`) and Bash (`.sh`) wrappers. |
+| **Developer CLI** | [`src/agentic_os/`](src/agentic_os/) | Python CLI package (`doctor`, `init`, `new`, `ide`) distributed via PyPI / wheels. |
 | **Codebase Memory MCP** | [`mcp/`](mcp/) | 7-entity graph schema (`ArchitectureDecision`, `ServiceBoundary`, `RootCauseAnalysis`) for persistent knowledge. |
 | **Documentation Orchestrator** | [`.agents/skills/documentation-orchestrator/`](.agents/skills/documentation-orchestrator/SKILL.md) | 5-tier adaptive documentation framework preventing documentation drift. |
 | **Testing & Quality** | [`.agents/skills/testing-quality/`](.agents/skills/testing-quality/SKILL.md) | Standardized testing pyramid (Unit, Integration, Regression) with strict execution verification. |
@@ -123,7 +225,7 @@ AgenticOS decouples engineering into clear, specialized operational layers:
 
 | Engineering Dimension | Raw Coding Agent (Before) | AgenticOS Workflow (After) | Evidence / Validation |
 | :--- | :--- | :--- | :--- |
-| **Environment Management** | Bare `pip install` in global Python. | Strictly isolated `.venv/`, `.python-version` pinned, `uv sync` lockfiles. | Blocked by deterministic `hooks/environment_guard.py`. |
+| **Environment Management** | Bare `pip install` in global Python. | Strictly isolated `.venv/`, `.python-version` pinned, `uv sync` lockfiles. | Blocked by deterministic `hooks/environment_guard.py` & `agentic-os doctor`. |
 | **Cross-Project Isolation** | Upgrading Package A breaks Package B. | Independent lockfiles; no cross-project bleed observed in controlled tests. | Validated in [Case Study](docs/case-studies/dependency-isolation.md). |
 | **Architecture Design** | Sprawling monolithic single-file code. | Layered domain boundaries, dependency injection, typed schema validation. | Governed by `code-architecture` skill. |
 | **Testing Discipline** | "I wrote the code, it should work." | Mandatory Pytest/Vitest suites executed and verified prior to completion. | Validated via `tests/` self-verification suite. |
@@ -138,7 +240,7 @@ Can two concurrent projects with conflicting major dependencies (e.g., **Pydanti
 
 ```text
 Project A (Pydantic 2.7.4) ───┐
-                              ├── Isolated (.venv / uv.lock) ──► Host Environment Clean
+                               ├── Isolated (.venv / uv.lock) ──► Host Environment Clean
 Project B (Pydantic 1.10.13) ─┘
 ```
 
@@ -158,51 +260,9 @@ AgenticOS includes 5 pre-configured, tested starter templates in [`templates/`](
 4. **[`fullstack`](templates/fullstack/)**: Complete fullstack application with React 19 SPA, Vite, FastAPI backend, and Docker Compose.
 5. **[`production-service`](templates/production-service/)**: Enterprise microservice template with OpenTelemetry, structured JSON logging, correlation IDs, and multi-stage Dockerfile.
 
----
-
-## 🔌 AI Agent & IDE Compatibility
-
-AgenticOS is designed to work across major AI coding assistants and environments:
-
-| Assistant / IDE | Integration Mode | Configuration Mechanism |
-| :--- | :--- | :--- |
-| **Google Antigravity (AGY)** | **Native** | Automatically discovers `.agents/skills/` catalog and `AGENTS.md` rules. |
-| **Cursor IDE** | **Convention-based** | Add `.cursorrules` or symlink rules into `.cursor/rules/`. |
-| **VS Code + GitHub Copilot** | **Convention-based** | Reference `AGENTS.md` instructions in `.github/copilot-instructions.md`. |
-| **Claude Code (CLI)** | **Convention-based** | Reference or symlink `AGENTS.md` as `CLAUDE.md` in project root. |
-| **OpenAI Codex / Custom Agents** | **Prompt / Context Injection** | Ingest `AGENTS.md` and relevant `SKILL.md` files into system prompt context. |
-
----
-
-## 🚀 Quickstart
-
-### Option 1: Integrate into an Existing Project
-Copy the foundational invariants, modular skills, and deterministic hooks into your workspace:
-
+Scaffold any archetype instantly:
 ```bash
-# Windows PowerShell
-Copy-Item -Recurse "path/to/agentic-engineering-os/.agents" "./"
-Copy-Item -Recurse "path/to/agentic-engineering-os/hooks" "./"
-Copy-Item "path/to/agentic-engineering-os/AGENTS.md" "./"
-
-# Linux / macOS / WSL
-cp -r path/to/agentic-engineering-os/.agents ./
-cp -r path/to/agentic-engineering-os/hooks ./
-cp path/to/agentic-engineering-os/AGENTS.md ./
-```
-
-### Option 2: Bootstrap from a Starter Archetype
-Clone one of the 5 pre-configured production templates:
-
-```bash
-# Copy template (e.g., Python FastAPI Service)
-cp -r agentic-engineering-os/templates/python-service my-new-api
-cd my-new-api
-
-# Initialize isolated environment with uv
-uv venv .venv --python 3.12
-uv sync
-uv run pytest -v
+agentic-os new my-service --template production-service
 ```
 
 ---
@@ -212,7 +272,8 @@ uv run pytest -v
 AgenticOS is built and verified using its own engineering principles. Every pull request executes a self-verification test suite:
 
 ```bash
-# Run repository self-verification suite
+# Run CLI and repository self-verification suite
+py ./tests/test_cli.py              # Validates CLI parser, doctor, init, template generator, and IDE adapters
 py ./tests/validate_skills.py       # Validates YAML frontmatter, triggers & 6 Core Questions for all 30 skills
 py ./tests/scan_secrets.py          # Scans repository for secrets, credentials, and sensitive tokens
 py ./tests/test_templates.py        # Compiles all template code and validates test suite completeness
@@ -224,9 +285,9 @@ py ./tests/test_documentation.py    # Asserts 100% resolution of relative docume
 
 ## 🛣️ Roadmap
 
-* **v1.0 (Foundation — Current)**: 30+ Modular Skills, Deterministic Hooks, MCP memory layer, 5 templates, multi-OS support, and self-verification suite.
-* **v1.1 (Developer Experience — Planned)**: Standalone CLI (`agentic-os init`, `agentic-os doctor`), automated scaffolding, and pre-commit hook integration.
-* **v1.2 (Evidence & Benchmarks — Planned)**: Automated `AgenticEval` benchmark harness, empirical quality scorecards, and comparative evaluation suites.
+* **v1.0 (Foundation — Released)**: 30+ Modular Skills, Deterministic Hooks, MCP memory layer, 5 templates, multi-OS support, and self-verification suite.
+* **v1.1 (Developer Experience — Current)**: Developer CLI (`agentic-os init`, `doctor`, `new`, `ide`), automated archetype generator, and multi-agent IDE integration layer.
+* **v1.2 (Evidence & Benchmarks — Upcoming)**: Automated `AgenticEval` benchmark harness, empirical quality scorecards, and comparative evaluation suites.
 * **v2.0 (Ecosystem — Planned)**: Public skill registry, community plugins, multi-agent coordination protocols, and custom organization profiles.
 
 See **[ROADMAP.md](ROADMAP.md)** for detailed milestone tracking.
