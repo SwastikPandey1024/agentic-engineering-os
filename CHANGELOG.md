@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-08-15
+
+### Added
+- Standard-library `agentic-os` developer CLI.
+- `agentic-os doctor` environment and project health diagnostics.
+- Conflict-safe `agentic-os init` workspace bootstrap.
+- `agentic-os new` starter archetype generator.
+- Five verified production starter archetypes.
+- `agentic-os ide` multi-agent integration layer.
+- Native Antigravity integration and optional AgenticOS rule adapter.
+- Cursor `.cursorrules` integration.
+- GitHub Copilot `.github/copilot-instructions.md` integration.
+- Claude Code `CLAUDE.md` integration.
+- Cross-platform CI quality gate and GitHub Actions verification.
+
+### Improved
+- Developer onboarding through the installable CLI.
+- Conflict safety and idempotent project operations.
+- Cross-platform developer experience across Windows, macOS, and Linux.
+- Package distribution through the modern Python packaging configuration.
+- CI verification of package installation and CLI behavior.
+
+### Verification
+- 20/20 post-merge local verification checks passed.
+- 30+ modular skills validated.
+- Five starter templates validated.
+- Environment guard regression suite passed.
+- Documentation reference validation passed.
+- Secret scanning passed with zero detected secrets.
+- Package installation and CLI entrypoint verified.
+
+---
+
 ## [1.0.0] - 2026-08-14
 
 ### Initial Public Release
