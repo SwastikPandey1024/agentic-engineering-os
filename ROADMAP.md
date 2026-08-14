@@ -10,7 +10,7 @@ Our mission is to build the definitive open-source **Engineering Operating Syste
 ┌─────────────────────────────────────────────────────────────┐
 │ RELEASE ROADMAP                                             │
 ├─────────────────────────────────────────────────────────────┤
-│ v1.0 — Foundation (Current)                                 │
+│ v1.0 — Foundation (Released)                                │
 │   ├── 30+ Modular Engineering Skills                        │
 │   ├── Deterministic Environment Hooks (Python Engine)       │
 │   ├── Codebase Memory MCP Integration Layer                 │
@@ -18,13 +18,14 @@ Our mission is to build the definitive open-source **Engineering Operating Syste
 │   ├── Multi-OS Support (Windows, macOS, Linux)              │
 │   └── Automated Self-Verification Suite                     │
 ├─────────────────────────────────────────────────────────────┤
-│ v1.1 — Developer Experience (Upcoming)                      │
-│   ├── CLI Tooling (`agentic-os init`, `agentic-os doctor`)  │
-│   ├── Automated Project Scaffolding                         │
-│   ├── Pre-commit package ecosystem integration              │
-│   └── Dynamic IDE settings generator                        │
+│ v1.1 — Developer Experience (Current)                       │
+│   ├── Standard-Library Developer CLI (`agentic-os`)         │
+│   ├── Diagnostic Health Checks (`agentic-os doctor`)        │
+│   ├── Conflict-Safe Workspace Init (`agentic-os init`)      │
+│   ├── Starter Archetype Generator (`agentic-os new`)        │
+│   └── Multi-Agent IDE Adapters (`agentic-os ide`)           │
 ├─────────────────────────────────────────────────────────────┤
-│ v1.2 — Evidence & Benchmarks (Planned)                      │
+│ v1.2 — Evidence & Benchmarks (Upcoming)                     │
 │   ├── AgenticEval Benchmark Suite                           │
 │   ├── Empirical Quality Scorecard                           │
 │   ├── Before / After comparative evaluation harness         │

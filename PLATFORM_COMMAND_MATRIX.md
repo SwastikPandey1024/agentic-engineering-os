@@ -4,7 +4,24 @@ This reference matrix provides equivalent command invocations across **Windows P
 
 ---
 
-## 🐍 1. Python Environment & Execution
+## 🛠️ 1. AgenticOS Developer CLI (Cross-Platform)
+
+| Task | Command Syntax (All Platforms) | Behavior & Safety Invariants |
+| :--- | :--- | :--- |
+| **Workspace Health Check** | `agentic-os doctor` | Inspects `.venv`, lockfiles, toolchain, Git status, and rules. |
+| **Strict Health Check** | `agentic-os doctor --strict` | Halts with non-zero code on warnings as well as critical errors. |
+| **Bootstrap Workspace** | `agentic-os init` | Copies `.agents/skills/`, `hooks/`, and `AGENTS.md` with SHA-256 conflict safety. |
+| **Preview Bootstrap** | `agentic-os init --dry-run` | Previews files without writing to disk. |
+| **Force Overwrite Bootstrap** | `agentic-os init --force` | Overwrites conflicting files safely. |
+| **List Starter Archetypes** | `agentic-os new --list-templates` | Displays all 5 production archetypes and descriptions. |
+| **Scaffold Project** | `agentic-os new <name> -t <template>` | Scaffolds a project from canonical archetype without code duplication. |
+| **List IDE Targets** | `agentic-os ide list` | Lists all supported AI coding assistant integration adapters. |
+| **Configure IDE Adapter** | `agentic-os ide configure --target <target>` | Configures `antigravity`, `cursor`, `copilot`, `claude`, or `all`. |
+| **Diagnose IDE Adapters** | `agentic-os ide doctor` | Inspects configured IDE adapters in current workspace. |
+
+---
+
+## 🐍 2. Python Environment & Execution
 
 | Task | Windows PowerShell | macOS / Linux (Bash/Zsh) | Universal Python / `uv` (Cross-Platform) |
 | :--- | :--- | :--- | :--- |
@@ -20,7 +37,7 @@ This reference matrix provides equivalent command invocations across **Windows P
 
 ---
 
-## 📦 2. Node.js Package Managers
+## 📦 3. Node.js Package Managers
 
 | Task | `npm` | `pnpm` | `yarn` | `bun` | Lockfile |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -32,7 +49,7 @@ This reference matrix provides equivalent command invocations across **Windows P
 
 ---
 
-## 📁 3. File System & Directory Operations
+## 📁 4. File System & Directory Operations
 
 | Operation | Windows PowerShell | macOS / Linux (Bash/Zsh) | Cross-Platform Python (`pathlib` / `shutil`) |
 | :--- | :--- | :--- | :--- |
@@ -46,7 +63,7 @@ This reference matrix provides equivalent command invocations across **Windows P
 
 ---
 
-## ⚙️ 4. Environment Variables
+## ⚙️ 5. Environment Variables
 
 | Task | Windows PowerShell | Windows CMD | macOS / Linux (Bash/Zsh) |
 | :--- | :--- | :--- | :--- |
@@ -57,7 +74,7 @@ This reference matrix provides equivalent command invocations across **Windows P
 
 ---
 
-## 🔎 5. Text Search & Verification (Replacing grep / sed / awk)
+## 🔎 6. Text Search & Verification (Replacing grep / sed / awk)
 
 | Task | Windows PowerShell | macOS / Linux | Cross-Platform Python (Recommended) |
 | :--- | :--- | :--- | :--- |
@@ -67,7 +84,7 @@ This reference matrix provides equivalent command invocations across **Windows P
 
 ---
 
-## 🐳 6. Docker & Container Commands (Universally Identical)
+## 🐳 7. Docker & Container Commands (Universally Identical)
 
 | Task | Command (All Platforms) |
 | :--- | :--- |
@@ -81,7 +98,7 @@ This reference matrix provides equivalent command invocations across **Windows P
 
 ---
 
-## 🌿 7. Git Workflows (Universally Identical)
+## 🌿 8. Git Workflows (Universally Identical)
 
 | Task | Command (All Platforms) |
 | :--- | :--- |
