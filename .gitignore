@@ -33,7 +33,7 @@ ENV/
 env/
 .conda_env/
 
-# Testing & Quality caches
+# Testing & Quality caches & fixtures
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
@@ -44,6 +44,7 @@ nosetests.xml
 coverage.xml
 *.cover
 *.py,cover
+tests/fixtures/
 
 # Node.js
 node_modules/
