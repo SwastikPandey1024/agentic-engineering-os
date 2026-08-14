@@ -2,7 +2,7 @@
 AgenticOS Command-Line Interface.
 
 Provides developer tooling, environment diagnostics, project scaffolding,
-and starter archetype generation for AI-assisted software engineering.
+starter archetype generation, and multi-agent/IDE integrations.
 """
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ from typing import Sequence
 
 from agentic_os import __version__
 from agentic_os.doctor import run_doctor
+from agentic_os.ide import print_target_list, run_ide_configure, run_ide_doctor
 from agentic_os.init import run_init
 from agentic_os.templates import print_template_catalog, run_new
 
@@ -134,6 +135,75 @@ def create_parser() -> argparse.ArgumentParser:
         help="Suppress detailed file output.",
     )
 
+    # 4. ide subcommand (Multi-Agent & IDE Integration)
+    ide_parser = subparsers.add_parser(
+        "ide",
+        help="Manage IDE and AI coding assistant integration adapters.",
+        description="Configures rules and instructions for Antigravity, Cursor, Copilot, and Claude.",
+    )
+    ide_subparsers = ide_parser.add_subparsers(dest="ide_action", title="IDE Actions")
+
+    # 4a. ide list
+    ide_subparsers.add_parser(
+        "list",
+        help="List all supported IDE and AI coding assistant targets.",
+    )
+
+    # 4b. ide configure
+    configure_parser = ide_subparsers.add_parser(
+        "configure",
+        help="Configure integration files for a target AI coding assistant.",
+    )
+    configure_parser.add_argument(
+        "-t",
+        "--target",
+        required=False,
+        default="all",
+        help="Target AI assistant: antigravity, cursor, copilot, claude, all (default: all).",
+    )
+    configure_parser.add_argument(
+        "workspace",
+        nargs="?",
+        default=".",
+        help="Target workspace directory (default: current directory).",
+    )
+    configure_parser.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        help="Force overwrite existing configuration files.",
+    )
+    configure_parser.add_argument(
+        "-n",
+        "--dry-run",
+        action="store_true",
+        help="Preview configuration files without writing to disk.",
+    )
+    configure_parser.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        help="Suppress detailed output.",
+    )
+
+    # 4c. ide doctor
+    ide_doctor_parser = ide_subparsers.add_parser(
+        "doctor",
+        help="Inspect configured IDE integration adapters in current workspace.",
+    )
+    ide_doctor_parser.add_argument(
+        "workspace",
+        nargs="?",
+        default=".",
+        help="Target workspace directory (default: current directory).",
+    )
+    ide_doctor_parser.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        help="Suppress detailed output.",
+    )
+
     return parser
 
 
@@ -172,6 +242,20 @@ def main(argv: Sequence[str] | None = None) -> int:
             init_git=args.git,
             quiet=args.quiet,
         )
+    elif args.command == "ide":
+        if not hasattr(args, "ide_action") or not args.ide_action or args.ide_action == "list":
+            print_target_list()
+            return 0
+        elif args.ide_action == "configure":
+            return run_ide_configure(
+                target=args.target,
+                project_dir=args.workspace,
+                force=args.force,
+                dry_run=args.dry_run,
+                quiet=args.quiet,
+            )
+        elif args.ide_action == "doctor":
+            return run_ide_doctor(project_dir=args.workspace, quiet=args.quiet)
 
     return 0
 

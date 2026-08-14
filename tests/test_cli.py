@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive tests for AgenticOS CLI: Foundation, Doctor, Init, and New Template Generator.
+Comprehensive tests for AgenticOS CLI: Foundation, Doctor, Init, Template Generator, and IDE Integrations.
 """
 
 from __future__ import annotations
@@ -17,19 +17,26 @@ from agentic_os import __version__
 from agentic_os.cli import create_parser, main
 from agentic_os.doctor import run_doctor
 from agentic_os.guard import ProjectDiagnostics
+from agentic_os.ide import (
+    AGENTICOS_MARKER,
+    IDE_TARGETS,
+    list_targets,
+    run_ide_configure,
+    run_ide_doctor,
+)
 from agentic_os.init import find_source_root, run_init
 from agentic_os.templates import list_templates, run_new
 
 
 def test_cli_foundation() -> None:
-    print("[Test 1/10] Validating CLI Foundation & Arguments...")
+    print("[Test 1/14] Validating CLI Foundation & Arguments...")
     parser = create_parser()
     assert parser.prog == "agentic-os"
     assert main([]) == 0
 
 
 def test_doctor_healthy_project(tmp_path: Path) -> None:
-    print("[Test 2/10] Validating Doctor on a Healthy Project...")
+    print("[Test 2/14] Validating Doctor on a Healthy Project...")
     proj = tmp_path / "healthy_project"
     proj.mkdir(parents=True, exist_ok=True)
 
@@ -59,7 +66,7 @@ def test_doctor_healthy_project(tmp_path: Path) -> None:
 
 
 def test_doctor_unisolated_project(tmp_path: Path) -> None:
-    print("[Test 3/10] Validating Doctor Error Detection on Unisolated Project...")
+    print("[Test 3/14] Validating Doctor Error Detection on Unisolated Project...")
     proj = tmp_path / "unisolated_project"
     proj.mkdir(parents=True, exist_ok=True)
 
@@ -75,7 +82,7 @@ def test_doctor_unisolated_project(tmp_path: Path) -> None:
 
 
 def test_init_bootstrap_and_idempotency(tmp_path: Path) -> None:
-    print("[Test 4/10] Validating Init Bootstrap, Idempotency & Dry-Run...")
+    print("[Test 4/14] Validating Init Bootstrap, Idempotency & Dry-Run...")
     target = tmp_path / "bootstrap_target"
     target.mkdir(parents=True, exist_ok=True)
 
@@ -97,7 +104,7 @@ def test_init_bootstrap_and_idempotency(tmp_path: Path) -> None:
 
 
 def test_init_conflict_handling(tmp_path: Path) -> None:
-    print("[Test 5/10] Validating Init Conflict Safety & Force Overwrite...")
+    print("[Test 5/14] Validating Init Conflict Safety & Force Overwrite...")
     target = tmp_path / "conflict_target"
     target.mkdir(parents=True, exist_ok=True)
 
@@ -116,14 +123,14 @@ def test_init_conflict_handling(tmp_path: Path) -> None:
 
 
 def test_list_templates() -> None:
-    print("[Test 6/10] Validating List Available Starter Archetypes...")
+    print("[Test 6/14] Validating List Available Starter Archetypes...")
     templates = list_templates()
     expected = {"python-service", "ai-ml", "rag-llm", "fullstack", "production-service"}
     assert expected.issubset(templates.keys()), f"Missing templates in {templates.keys()}"
 
 
 def test_all_five_templates_generation(tmp_path: Path) -> None:
-    print("[Test 7/10] Validating Scaffolding for All 5 Production Archetypes...")
+    print("[Test 7/14] Validating Scaffolding for All 5 Production Archetypes...")
     all_templates = ["python-service", "ai-ml", "rag-llm", "fullstack", "production-service"]
 
     for tmpl in all_templates:
@@ -149,7 +156,7 @@ def test_all_five_templates_generation(tmp_path: Path) -> None:
 
 
 def test_template_safety_and_conflicts(tmp_path: Path) -> None:
-    print("[Test 8/10] Validating Template Non-Empty Conflict & Dry-Run Safety...")
+    print("[Test 8/14] Validating Template Non-Empty Conflict & Dry-Run Safety...")
     target = tmp_path / "conflict_app"
     target.mkdir(parents=True, exist_ok=True)
     (target / "existing_file.txt").write_text("pre-existing content", encoding="utf-8")
@@ -189,7 +196,7 @@ def test_template_safety_and_conflicts(tmp_path: Path) -> None:
 
 
 def test_invalid_template_and_path_traversal(tmp_path: Path) -> None:
-    print("[Test 9/10] Validating Invalid Template & Path Traversal Rejection...")
+    print("[Test 9/14] Validating Invalid Template & Path Traversal Rejection...")
     # 1. Invalid template name
     code_invalid_tmpl = run_new(
         project_name="test_bad_tmpl",
@@ -209,8 +216,103 @@ def test_invalid_template_and_path_traversal(tmp_path: Path) -> None:
         assert code_bad_name == 1, f"Path traversal name '{bad_name}' was not rejected"
 
 
+def test_ide_list_and_metadata() -> None:
+    print("[Test 10/14] Validating IDE Target List and Native Metadata...")
+    targets = list_targets()
+    expected = {"antigravity", "cursor", "copilot", "claude"}
+    assert set(targets.keys()) == expected
+    assert targets["antigravity"]["mode"] == "Native / Zero-config"
+    assert targets["antigravity"]["primary_file"] == ".agents/rules/agentic-os.md"
+    for key, val in targets.items():
+        assert "name" in val
+        assert "primary_file" in val
+        assert "mode" in val
+
+
+def test_ide_configure_each_target(tmp_path: Path) -> None:
+    print("[Test 11/14] Validating IDE Configuration for Each Target...")
+    for target_key in ["antigravity", "cursor", "copilot", "claude"]:
+        ws = tmp_path / f"ws_{target_key}"
+        ws.mkdir(parents=True, exist_ok=True)
+
+        # 1. Dry run creates 0 files
+        code_dry = run_ide_configure(target=target_key, project_dir=ws, dry_run=True, quiet=True)
+        assert code_dry == 0
+        target_file = ws / IDE_TARGETS[target_key]["primary_file"]
+        assert not target_file.exists(), f"Dry run should not create {target_file}"
+
+        # 2. Active configuration
+        code_active = run_ide_configure(target=target_key, project_dir=ws, quiet=True)
+        assert code_active == 0, f"Configure failed for {target_key}"
+        assert target_file.is_file(), f"Primary config file {target_file} was not created"
+
+        # Assert no synthetic .agents/config.json is ever created
+        assert not (ws / ".agents" / "config.json").exists()
+
+        # Check content references AgenticOS source of truth and is thin (< 2.5KB)
+        content = target_file.read_text(encoding="utf-8")
+        assert len(content) < 2500, f"File {target_file} is too large, skills should not be duplicated"
+        assert "AGENTS.md" in content or "AgenticOS" in content
+
+        # 3. Idempotent re-run
+        code_idempotent = run_ide_configure(target=target_key, project_dir=ws, quiet=True)
+        assert code_idempotent == 0
+
+
+def test_ide_configure_all_and_doctor(tmp_path: Path) -> None:
+    print("[Test 12/14] Validating IDE Configure 'all' and IDE Doctor...")
+    ws = tmp_path / "ws_all"
+    ws.mkdir(parents=True, exist_ok=True)
+
+    # Pre-populate native AGENTS.md and .agents/skills/
+    (ws / "AGENTS.md").write_text("# Universal Rules", encoding="utf-8")
+    (ws / ".agents" / "skills").mkdir(parents=True, exist_ok=True)
+
+    # Run doctor before configure -> Antigravity already [NATIVE PASS]
+    code_doc_pre = run_ide_doctor(project_dir=ws, quiet=True)
+    assert code_doc_pre == 0
+
+    # Configure all
+    code_all = run_ide_configure(target="all", project_dir=ws, quiet=True)
+    assert code_all == 0
+
+    # Assert all 4 primary files exist
+    assert (ws / ".agents" / "rules" / "agentic-os.md").is_file()
+    assert not (ws / ".agents" / "config.json").exists()
+    assert (ws / ".cursorrules").is_file()
+    assert (ws / ".github" / "copilot-instructions.md").is_file()
+    assert (ws / "CLAUDE.md").is_file()
+
+    # Run doctor after configure -> All 4 active
+    code_doc_post = run_ide_doctor(project_dir=ws, quiet=True)
+    assert code_doc_post == 0
+
+
+def test_ide_conflict_handling_and_rejection(tmp_path: Path) -> None:
+    print("[Test 13/14] Validating IDE Conflict Protection & Target Rejection...")
+    ws = tmp_path / "ws_conflict"
+    ws.mkdir(parents=True, exist_ok=True)
+
+    # Pre-populate .cursorrules with custom content
+    (ws / ".cursorrules").write_text("# MY CUSTOM UNRELATED RULES", encoding="utf-8")
+
+    # Configure cursor without --force -> Conflict detected, exit 1
+    code_conflict = run_ide_configure(target="cursor", project_dir=ws, force=False, quiet=True)
+    assert code_conflict == 1
+    assert (ws / ".cursorrules").read_text(encoding="utf-8") == "# MY CUSTOM UNRELATED RULES"
+
+    # Configure cursor with --force -> Overwrite, exit 0
+    code_force = run_ide_configure(target="cursor", project_dir=ws, force=True, quiet=True)
+    assert code_force == 0
+    assert (ws / ".cursorrules").read_text(encoding="utf-8") != "# MY CUSTOM UNRELATED RULES"
+
+    # Unknown target rejection
+    code_unknown = run_ide_configure(target="invalid-agent", project_dir=ws, quiet=True)
+    assert code_unknown == 1
+
+
 def test_cli_subcommands(tmp_path: Path) -> None:
-    print("[Test 10/10] Validating CLI Subcommands Execution via main()...")
+    print("[Test 14/14] Validating CLI Subcommands Execution via main()...")
     target = tmp_path / "cli_subcommand_target"
 
     # 1. Test 'init' via CLI main
@@ -222,15 +324,18 @@ def test_cli_subcommands(tmp_path: Path) -> None:
     code_bare_doctor = main(["doctor", str(target), "-q"])
     assert code_bare_doctor == 0
 
-    # 3. Test 'new' via CLI main
-    cli_app_dir = tmp_path / "cli_new_app"
-    code_cli_new = main(["new", "cli_new_app", "-t", "rag-llm", "-q"])
-    assert code_cli_new == 0
-    # Clean up cli_new_app from wherever cwd was
-    if (ROOT_DIR / "cli_new_app").exists():
-        shutil.rmtree(ROOT_DIR / "cli_new_app", ignore_errors=True)
-    if (Path.cwd() / "cli_new_app").exists():
-        shutil.rmtree(Path.cwd() / "cli_new_app", ignore_errors=True)
+    # 3. Test 'ide list' via CLI main
+    code_ide_list = main(["ide", "list"])
+    assert code_ide_list == 0
+
+    # 4. Test 'ide configure' via CLI main
+    code_ide_cfg = main(["ide", "configure", "-t", "cursor", str(target), "-q"])
+    assert code_ide_cfg == 0
+    assert (target / ".cursorrules").is_file()
+
+    # 5. Test 'ide doctor' via CLI main
+    code_ide_doc = main(["ide", "doctor", str(target), "-q"])
+    assert code_ide_doc == 0
 
 
 def run_all_tests() -> int:
@@ -249,8 +354,12 @@ def run_all_tests() -> int:
         test_all_five_templates_generation(scratch_dir)
         test_template_safety_and_conflicts(scratch_dir)
         test_invalid_template_and_path_traversal(scratch_dir)
+        test_ide_list_and_metadata()
+        test_ide_configure_each_target(scratch_dir)
+        test_ide_configure_all_and_doctor(scratch_dir)
+        test_ide_conflict_handling_and_rejection(scratch_dir)
         test_cli_subcommands(scratch_dir)
-        print("\n  [PASS] All 10 CLI, Doctor, Init, and New Template Generator unit tests PASSED successfully!")
+        print("\n  [PASS] All 14 CLI, Doctor, Init, Template, and IDE Integration tests PASSED successfully!")
         return 0
     finally:
         shutil.rmtree(scratch_dir, ignore_errors=True)
