@@ -67,7 +67,7 @@ Get started with AgenticOS in under 60 seconds using the `agentic-os` developer 
 
 ### 1. Install AgenticOS
 ```bash
-pip install agentic-os
+pip install agentic-engineering-os
 ```
 
 ### 2. Option A: Bootstrap into an Existing Project
